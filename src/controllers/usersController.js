@@ -7,38 +7,39 @@ async createUser(req, res){
 try{
  const { nome, cpf, email, senha_hash, cargo} = req.body
 
-    const user = await dataBase.select('*').table('usuarios').where({cpf:cpf})
-    if(user){
-        return res.status(409).json({message: 'usuario já existe', user})
+    const usuario = await dataBase.where({cpf:cpf}).table('usuarios')
+
+    if(usuario.length > 0){
+        return res.json({message: 'usuario ja está cadastrado', usuario})
     }
-    let dados ={
-        nome,
-        cpf,
-        email,
-        senha_hash,
-        cargo
-        
-    }
-    const result = await dataBase.insert(dados).into("usuarios")
-    return res.status(201).json({message:'usuário cadastrado', result})
+        let dados = {
+                nome,
+                cpf,
+                email, 
+                senha_hash, 
+                cargo
+        }
+         await dataBase.insert(dados).into('usuarios')
+        return res.status(201).json({message: 'cadastro efetuado'})
+    
+  
+    
 
     }catch(error) {
         console.log(error)
         return res.status(500).json(error)
     }
     
-
-
     },
 
-async showListUsers(req, res){
+  async showListUsers(req, res){
 
     try{
-        const result = await dataBase.select().table('usuarios')
-        if(!result){
-            return res.status(204).json({message:'Nenhum usuário foi encontrado. Por favor cadastre um novo usuário'})
+        const usuarios = await dataBase.select('*').table('usuarios')
+        if(usuarios.length == 0){
+            return res.status(200).json({message:'Nenhum usuário foi encontrado, você deve cadastrar um.'})
         }
-        return res.status(200).json({menssage: 'usuários encontados', result})
+        return res.status(200).json({menssage: 'usuários encontados', usuarios})
     }catch(error){
         console.log(error)
     }
@@ -46,27 +47,37 @@ async showListUsers(req, res){
 },
 async showUser(req, res){
 
-    const id = req.params
+   try{
+     const {id} = req.params
    
-    const user = await dataBase.select('*').table('usuarios').where(id)
+    const usuario = await dataBase.where({id:id}).table('usuarios')
     
-    if(!user){
-        return res.status(204).json({message: 'Usuário não existe'})
-    }
+    
+        if(usuario.length == 0){
+           return res.status(200).json({message:'Usuário não encontrado'})
+        }
+        return res.status(200).json({message:'Usuário encontrado', usuario})
 
-    return res.status(200).json({message:'Usuário encontrado', user})
+   }catch(error){
+    console.log(error)
+   }
+    
+    
+
 },
 
 async updateUser(req, res){
+    try{
+
     const { nome, cpf, email, senha_hash, cargo} = req.body
-    const id = req.params
+    const {id} = req.params
    
-    const user = await dataBase.select('*').table('usuarios').where(id)
+  const usuario = await dataBase.where({id:id}).table('usuarios')
     
-    if(!user){
-        
-        return res.status(204).json({message: 'Usuário não existe'})
-    }
+    
+        if(usuario.length == 0){
+           return res.status(200).json({message:'Usuário não encontrado'})
+        }
 
      let dados ={
         nome,
@@ -76,10 +87,37 @@ async updateUser(req, res){
         cargo
         
     }
-    const result = await dataBase.where(id).update(dados).table('usuarios')
-    return res.status(201).json({message: 'Usuário atualizado com sucesso', result})
     
-}
+    await dataBase.where({id}).update(dados).table('usuarios')
+    return res.status(201).json({message: 'Usuário atualizado com sucesso'})
+    
+    }catch(error){
+        console.log(error)
+    }
+},
+async deleteUser(req, res){
+    try{
+
+    
+    const {id} = req.params
+   
+        const usuario = await dataBase.where({id:id}).table('usuarios')
+    
+    
+        if(usuario.length == 0){
+           return res.status(200).json({message:'Usuário não encontrado'})
+        }
+
+    
+    
+    await dataBase.where({id}).del().table('usuarios')
+    return res.status(201).json({message: 'Usuário deletado com sucesso'})
+    
+    }catch(error){
+        console.log(error)
+    }
+} 
+
 
 
 }

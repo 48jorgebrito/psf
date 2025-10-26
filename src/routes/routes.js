@@ -6,6 +6,7 @@ router.post('/cadastro', user.createUser)
 router.get('/cadastro', user.showListUsers)
 router.get('/cadastro/:id', user.showUser)
 router.patch('/cadastro/:id', user.updateUser)
+router.delete('/cadastro/:id', user.deleteUser)
 
 
 module.exports = router
