@@ -1,5 +1,5 @@
 const dataBase = require('../dataBase/dataBase')
-
+const bcrypt = require('bcryptjs')
 module.exports = {
 
 async createUser(req, res){
@@ -7,16 +7,18 @@ async createUser(req, res){
 try{
  const { nome, cpf, email, senha_hash, cargo} = req.body
 
-    const usuario = await dataBase.where({cpf:cpf}).table('usuarios')
+    const usuario = await dataBase.where({cpf:cpf}).table('usuarios').first()
+    
 
-    if(usuario.length > 0){
-        return res.json({message: 'usuario ja está cadastrado', usuario})
+    if(usuario){
+        return res.json({message: 'usuario já está cadastrado', usuario})
     }
+        const senhaHash = await bcrypt.hash(senha_hash, 10)
         let dados = {
                 nome,
                 cpf,
                 email, 
-                senha_hash, 
+                senha_hash:senhaHash,
                 cargo
         }
          await dataBase.insert(dados).into('usuarios')
@@ -35,8 +37,8 @@ try{
   async showListUsers(req, res){
 
     try{
-        const usuarios = await dataBase.select('*').table('usuarios')
-        if(usuarios.length == 0){
+        const usuarios = await dataBase.select('*').table('usuarios').first()
+        if(!usuarios){
             return res.status(200).json({message:'Nenhum usuário foi encontrado, você deve cadastrar um.'})
         }
         return res.status(200).json({menssage: 'usuários encontados', usuarios})
@@ -50,10 +52,10 @@ async showUser(req, res){
    try{
      const {id} = req.params
    
-    const usuario = await dataBase.where({id:id}).table('usuarios')
+    const usuario = await dataBase.where({id:id}).table('usuarios').first()
     
     
-        if(usuario.length == 0){
+        if(!usuario){
            return res.status(200).json({message:'Usuário não encontrado'})
         }
         return res.status(200).json({message:'Usuário encontrado', usuario})
@@ -72,10 +74,10 @@ async updateUser(req, res){
     const { nome, cpf, email, senha_hash, cargo} = req.body
     const {id} = req.params
    
-  const usuario = await dataBase.where({id:id}).table('usuarios')
+  const usuario = await dataBase.where({id:id}).table('usuarios').first()
     
     
-        if(usuario.length == 0){
+        if(!usuario){
            return res.status(200).json({message:'Usuário não encontrado'})
         }
 
@@ -101,10 +103,10 @@ async deleteUser(req, res){
     
     const {id} = req.params
    
-        const usuario = await dataBase.where({id:id}).table('usuarios')
+        const usuario = await dataBase.where({id:id}).table('usuarios').first()
     
     
-        if(usuario.length == 0){
+        if(!usuario){
            return res.status(200).json({message:'Usuário não encontrado'})
         }
 
